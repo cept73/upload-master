@@ -14,6 +14,9 @@ class UploadedFile extends Model
 {
     use HasFactory;
 
+    const CREATED_AT = null;
+    const UPDATED_AT = null;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -21,6 +24,7 @@ class UploadedFile extends Model
      */
     protected $fillable = [
         'uuid',
+        'file_name',
         'session_uuid',
     ];
 

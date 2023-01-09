@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Components\Request\RequestRepository;
+use App\Components\UploadedFile\UploadedFileFactory;
 use App\Components\UploadedFile\UploadedFileService;
 use App\Exceptions\ForbiddenException;
 use App\Models\UploadedFile;
@@ -20,6 +21,8 @@ class UploadController extends BaseController
         try {
             $fileId     = RequestRepository::get('X-File-Id');
             $fileName   = RequestRepository::get('X-File-Name', true);
+
+            UploadedFileService::isOwnByCurrentUserOrFail($fileId);
 
             return [
                 'status'        => 200,
@@ -42,7 +45,9 @@ class UploadController extends BaseController
     public function upload(): array
     {
         $fileId     = RequestRepository::get('X-File-Id');
-        $startAt    = RequestRepository::get('X-Start-Byte');
+        UploadedFileService::isOwnByCurrentUserOrFail($fileId);
+
+        $startAt    = (int) RequestRepository::get('X-Start-Byte');
         $fileName   = RequestRepository::get('X-File-Name', true);
         $filePath   = UploadedFile::getFilePath($fileId, $fileName);
         $filePathShort = UploadedFile::getFilePath($fileId, $fileName, false);
@@ -55,20 +60,26 @@ class UploadController extends BaseController
             ];
         }
 
-        $content = request()->getContent();
         UploadedFileService::checkFolderExists($fileId);
-        if ($realFileNameSize != $startAt) {
+        if ($realFileNameSize !== $startAt) {
             UploadedFileService::truncateFile($filePath, $startAt);
         }
+
+        $content = request()->getContent();
         if ($startAt > 0) {
             Storage::append($filePathShort, $content);
         } else {
+            if ($startAt === 0) {
+                UploadedFileFactory::createRecordByIdAndName($fileId, $fileName);
+            }
+
             Storage::put($filePathShort, $content);
         }
 
         return [
             'status'        => 200,
             'startAt'       => $startAt,
+            'nuf'           => $newUploadFile ?? null
         ];
     }
 }

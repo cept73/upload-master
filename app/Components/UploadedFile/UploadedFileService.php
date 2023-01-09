@@ -22,13 +22,17 @@ class UploadedFileService
     /**
      * @throws ForbiddenException
      */
-    public static function getFileLength($fileId, $fileName): int
+    public static function isOwnByCurrentUserOrFail(string $fileUuid): void
     {
-        if (!self::isOwnByCurrentUser($fileId)) {
+        if (!UploadedFileService::isOwnByCurrentUser($fileUuid)) {
             throw new ForbiddenException('You have no rights to access this file');
         }
+    }
 
+    public static function getFileLength($fileId, $fileName): int
+    {
         $realFilePathShort = UploadedFile::getFilePath($fileId, $fileName, false);
+
         return Storage::exists($realFilePathShort)
             ? Storage::size($realFilePathShort)
             : 0;

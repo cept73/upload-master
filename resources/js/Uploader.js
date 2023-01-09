@@ -14,11 +14,6 @@ export class Uploader
         this.fileId         = file.size + '-' + file.lastModified;
     }
 
-    encodeField(field)
-    {
-        return encodeURIComponent(field);
-    }
-
     async upload()
     {
         this.startByte = await this.getUploadedBytes();
@@ -39,9 +34,10 @@ export class Uploader
         xhr.upload.onprogress = () => {
             this.onProgress(this.App, this.startByte, this.file.size);
         }
+        xhr.upload.onloadend = () => {
+            this.upload();
+        }
         xhr.send(blob);
-
-        return this.upload();
     }
 
     async getUploadedBytes()
@@ -62,7 +58,12 @@ export class Uploader
 
                 return +text;
             })
-            .catch(err => console.error(err));
+            .catch(err => alert(err));
+    }
+
+    encodeField(field)
+    {
+        return encodeURIComponent(field);
     }
 
     stop()

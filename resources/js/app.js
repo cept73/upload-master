@@ -74,7 +74,7 @@ class App
 
             this.submitButton.disabled = true;
             this.sendFilePartial(this.uploadForm.querySelector('[type=file]'))
-                .catch(e => { console.log('Catch', e) });
+                .catch(e => { alert(e) });
         })
     }
 }
